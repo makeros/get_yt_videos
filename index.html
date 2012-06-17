@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+
+<script>
+google.load("jquery", "1.6.1");
+</script>
+
+<script>
+
+//http://stackoverflow.com/a/9102270/1259747
+function get_yt_video_id(url){
+
+	var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?]*).*/;
+	var match = url.match(regExp);
+
+	if(match&&match[2].length==11){
+	   	return match[2];
+	}else{
+		return false;
+	}
+}
+
+
+
+function get_yt_video_content(id){
+
+	var url = 'https://gdata.youtube.com/feeds/api/videos/'+id;
+
+	$("#media_list").prepend('<div class="new_load">Loading...</div>');
+
+	$.getJSON(url,{'v': '2', 'alt':'json'}, function(yt){
+
+		var entry = yt.entry;
+		var title = entry.title.$t;
+		var v_url = entry.content.src;
+		var media = entry.media$group;
+		var thumbnail = media.media$thumbnail[0].url;
+		var description = media.media$description.$t;
+		
+		//(title.length > 70)? title = title.substr(0,70)+'[..]': title;
+		(description.length > 120)? description = description.substr(0,120)+'[..]': description;
+
+		r = '<div class="video_container" >';
+		r += '<span class="btn_remove"><div class="btn_close"></div></span>';
+		r += '<img class="movie-thumb" src="'+thumbnail+'" /> ';
+		r += '<input type="hidden" value='+v_url+'"/>';
+		r += '<a class="entry-title" href="'+v_url+'" >'+title+'</a><br/>';
+		
+	
+		r += '<span class="entry-description">'+description+'</span>';
+		r += '<div style="clear:both"></div></div>';
+		
+		$("#media_list .new_load").html(r).removeClass('new_load');
+	});
+
+}
+
+
+$(document).ready(function(){
+	
+	$("#media_list").delegate('.video_container','mouseover mouseout',function(e){
+		if(e.type == 'mouseover'){
+			$(this).children('.btn_remove').css('visibility','visible');
+		}
+
+		if(e.type == 'mouseout'){
+			$(this).children('.btn_remove').css('visibility','hidden');
+		}
+	});
+	$("#btn_check").click(function(){
+		
+		var id = get_yt_video_id($("#video_url").val());
+		get_yt_video_content(id);
+		
+	});
+
+	$("#media_list").delegate('.btn_remove','click',function(){
+		$(this).parent().fadeOut('fast',function(){
+			$(this).parent().remove(); //usuwa jeszcze wrappera z new load
+		});
+	});
+})
+</script>
+
+<style>
+	body{}
+
+	.video-list-container{
+		margin:auto;
+		width: 500px;
+	}
+	.video-list-container .top-panel{
+		text-align: center;
+	}
+	.video-list-container input[type=text]{
+		border: solid 1px #c3c3c3;
+		padding: 5px;
+		width:490px;
+	}
+	.video-list-container button{
+		padding: 4px;
+		border: solid 1px #e3e3e3;
+		background-color: #e0e0e0;
+	}
+	.video-list-container .video_container{
+		clear:both;
+		padding:15px;
+		border: solid 1px #e9e9e9;
+		background-color: #f9f9f9;
+	}
+	.video-list-container .movie-thumb{
+		float: left;
+		margin: 0px 10px 10px 0px;
+		border: solid 2px #c3c3c3;
+		box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.7);
+	}
+	.video-list-container .video_container .btn_remove{
+		float:right;
+		top:-10px;
+		right: -5px;
+		cursor:pointer;
+		font-weight:bold;
+		visibility:hidden;
+		position: relative;
+	}
+	.video-list-container .btn_remove .btn_close{
+		display: block;
+       	width: 21px;
+       	height: 20px;
+		background: url('close_element.png') no-repeat top center;
+    }
+    .video-list-container .video_container .entry-title{
+    	font-family: Georgia, sans-serif;
+    	font-size: 13px;
+    	font-weight: bold;
+    	color: #3c3c3c;
+    }
+    .video-list-container .video_container .entry-description{
+    	font-size: 12px;
+    	font-family: Arial	;
+    }
+    .video-list-container .video_container .btn_remove .btn_close:hover{
+    	background-position: center bottom;
+    }
+
+</style>
+
+</head>
+
+<body>
+<div class="video-list-container">
+	<div class="top-panel">
+		<input  id="video_url" type="text" value="http://www.youtube.com/watch?v=9MAsMybAUNU&feature" />
+		<button id="btn_check">Get video</button>	
+	</div>
+	<br/>
+	<div id="media_list"></div>
+</div>
+</body>
+</html>
