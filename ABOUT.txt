@@ -1,1 +1,1 @@
-Get preview of Youtube videos.
+Get preview of Youtube videos with jQuery.
